@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="mb-3">Welcome to CarTrackr</h1>
+    <p class="lead mb-4">Easily manage all your car-related expenses, reminders, and maintenance logs in one place.</p>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item">🔧 Track oil changes, brakes, and service history</li>
+                <li class="list-group-item">📅 Get reminders for inspections and insurance renewals</li>
+                <li class="list-group-item">💵 Log expenses and income like rideshare mileage</li>
+                <li class="list-group-item">📊 View reports by vehicle, category, or year</li>
+            </ul>
+            <a class="btn btn-primary btn-lg" href="{% url 'login' %}">Get Started</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

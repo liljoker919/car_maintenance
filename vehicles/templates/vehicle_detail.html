@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h2>
+<p><strong>Mileage:</strong> {{ vehicle.current_mileage }}</p>
+<p><strong>Condition:</strong> {{ vehicle.get_condition_display }}</p>
+<p><strong>VIN:</strong> {{ vehicle.vin }}</p>
+<p><strong>Nickname:</strong> {{ vehicle.nickname }}</p>
+<a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-warning">Edit</a>
+<a href="{% url 'vehicle_delete' vehicle.pk %}" class="btn btn-danger">Delete</a>
+<a href="{% url 'vehicle_list' %}" class="btn btn-secondary">Back</a>
+{% endblock %}
