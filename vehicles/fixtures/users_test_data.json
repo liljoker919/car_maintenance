@@ -1,0 +1,62 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "username": "testuser01",
+            "email": "chris.nickerson+test01@gmail.com",
+            "password": "TestPass2025!",
+            "is_staff": false,
+            "is_superuser": false,
+            "is_active": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "username": "testuser02",
+            "email": "chris.nickerson+test02@gmail.com",
+            "password": "TestPass2025!",
+            "is_staff": false,
+            "is_superuser": false,
+            "is_active": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 3,
+        "fields": {
+            "username": "testuser03",
+            "email": "chris.nickerson+test03@gmail.com",
+            "password": "TestPass2025!",
+            "is_staff": false,
+            "is_superuser": false,
+            "is_active": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 4,
+        "fields": {
+            "username": "testuser04",
+            "email": "chris.nickerson+test04@gmail.com",
+            "password": "TestPass2025!",
+            "is_staff": false,
+            "is_superuser": false,
+            "is_active": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 5,
+        "fields": {
+            "username": "testuser05",
+            "email": "chris.nickerson+test05@gmail.com",
+            "password": "TestPass2025!",
+            "is_staff": false,
+            "is_superuser": false,
+            "is_active": true
+        }
+    }
+]

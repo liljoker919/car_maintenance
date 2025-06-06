@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>My Vehicles</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
+            <i class="bi bi-plus-circle"></i> Add Vehicle
+        </button>
+    </div>
+
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% for message in messages %}
+        <div class="toast align-items-center text-white bg-success border-0 show" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if vehicles %}
+    <div class="row">
+        {% for vehicle in vehicles %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h5>
+                    <p class="card-text">Mileage: {{ vehicle.mileage|default:"N/A" }}</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#editVehicleModal{{ vehicle.id }}">
+                            Edit
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#deleteVehicleModal{{ vehicle.id }}">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include "vehicles/includes/edit_vehicle_modal.html" with vehicle=vehicle %}
+        {% include "vehicles/includes/delete_vehicle_modal.html" with vehicle=vehicle %}
+
+
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">No vehicles added yet.</p>
+    {% endif %}
+</div>
+
+<!-- Add Vehicle Modal -->
+<div class="modal fade {% if form.errors %}show d-block{% endif %}" id="addVehicleModal" tabindex="-1"
+    aria-labelledby="addVehicleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'vehicle_add' %}">
+
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addVehicleModalLabel">Add Vehicle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Please correct the errors below.
+                    </div>
+                    {% endif %}
+                    {% include "vehicles/includes/vehicle_form_fields.html" with form=form %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

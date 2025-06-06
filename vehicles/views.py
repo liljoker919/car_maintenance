@@ -3,7 +3,9 @@ from django.views.generic import ListView, CreateView
 from django.urls import reverse_lazy
 from .models import Vehicle
 from .forms import VehicleForm
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.views.generic import DeleteView
+from django.contrib.messages.views import SuccessMessageMixin
 
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -55,16 +57,32 @@ class VehicleUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("vehicle_list")
 
     def get_queryset(self):
+        # Ensure users can only edit their own vehicles
         return Vehicle.objects.filter(user=self.request.user)
 
-
-from django.views.generic import DeleteView
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 class VehicleDeleteView(LoginRequiredMixin, DeleteView):
     model = Vehicle
     template_name = "vehicles/vehicle_confirm_delete.html"
     success_url = reverse_lazy("vehicle_list")
+
+    def get_queryset(self):
+        return Vehicle.objects.filter(user=self.request.user)
+
+
+class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = Vehicle
+    success_url = reverse_lazy("vehicle_list")
+    success_message = "Vehicle deleted successfully."
+    template_name = None  # prevent full-page rendering
+
+    def get(self, request, *args, **kwargs):
+        # Disable GET access to avoid showing full-page confirmation
+        return redirect("vehicle_list")
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
