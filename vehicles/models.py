@@ -30,3 +30,19 @@ class Vehicle(models.Model):
         return (
             f"{self.year} {self.make} {self.model} ({self.nickname or 'No nickname'})"
         )
+
+
+class Insurance(models.Model):
+    provider = models.CharField(max_length=100)
+    renewal_date = models.DateField()
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    policy_number = models.CharField(max_length=50)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="insurances")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-renewal_date"]
+
+    def __str__(self):
+        return f"{self.provider} - {self.policy_number} ({self.vehicle})"
