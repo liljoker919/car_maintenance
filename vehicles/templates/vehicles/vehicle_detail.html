@@ -7,7 +7,7 @@
 <p><strong>Nickname:</strong> {{ vehicle.nickname }}</p>
 
 <div class="mb-3">
-    <a href="{% url 'vehicles:vehicle_update' vehicle.pk %}" class="btn btn-warning">Edit</a>
+    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editVehicleModal{{ vehicle.id }}">Edit</button>
     <a href="{% url 'vehicles:vehicle_delete' vehicle.pk %}" class="btn btn-danger">Delete</a>
     <a href="{% url 'vehicles:vehicle_list' %}" class="btn btn-secondary">Back</a>
 </div>
@@ -47,5 +47,6 @@
 
 <!-- Modal included at bottom so it always loads -->
 {% include "insurance/includes/add_insurance_modal.html" %}
+{% include "vehicles/includes/edit_vehicle_modal.html" with vehicle=vehicle %}
 
 {% endblock %}
