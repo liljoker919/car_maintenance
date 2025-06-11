@@ -99,3 +99,42 @@ class VehicleListTemplateTest(TestCase):
         self.assertIsNotNone(new_vehicle)
         self.assertEqual(new_vehicle.user, self.user)
         self.assertEqual(new_vehicle.year, 2022)
+
+
+class VehicleDetailTemplateTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        self.vehicle = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin='JT2BF28K8X0012345',
+            condition='good',
+            nickname='My Camry'
+        )
+
+    def test_vehicle_detail_page_renders_correctly(self):
+        """Test that vehicle detail page renders without URL reverse errors"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Should render successfully
+        self.assertEqual(response.status_code, 200)
+        
+        # Should contain vehicle information
+        self.assertContains(response, 'Toyota Camry')
+        self.assertContains(response, '2020')
+        self.assertContains(response, '25000')
+        
+        # Should contain Edit, Delete, and Back buttons
+        self.assertContains(response, 'Edit')
+        self.assertContains(response, 'Delete')
+        self.assertContains(response, 'Back')
+        
+        # This test will fail before the fix due to NoReverseMatch error
+        # for 'vehicle_edit' URL name

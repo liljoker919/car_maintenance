@@ -7,9 +7,9 @@
 <p><strong>Nickname:</strong> {{ vehicle.nickname }}</p>
 
 <div class="mb-3">
-    <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-warning">Edit</a>
-    <a href="{% url 'vehicle_delete' vehicle.pk %}" class="btn btn-danger">Delete</a>
-    <a href="{% url 'vehicle_list' %}" class="btn btn-secondary">Back</a>
+    <a href="{% url 'vehicles:vehicle_update' vehicle.pk %}" class="btn btn-warning">Edit</a>
+    <a href="{% url 'vehicles:vehicle_delete' vehicle.pk %}" class="btn btn-danger">Delete</a>
+    <a href="{% url 'vehicles:vehicle_list' %}" class="btn btn-secondary">Back</a>
 </div>
 
 <hr>
@@ -35,8 +35,8 @@
             Premium: ${{ policy.premium }}
         </small>
         <div class="mt-2">
-            <a href="{% url 'insurance_edit' policy.pk %}" class="btn btn-sm btn-outline-primary me-2">Edit</a>
-            <a href="{% url 'insurance_delete' policy.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            <a href="{% url 'insurance:insurance_edit' policy.pk %}" class="btn btn-sm btn-outline-primary me-2">Edit</a>
+            <a href="{% url 'insurance:insurance_delete' policy.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
         </div>
     </li>
     {% endfor %}
