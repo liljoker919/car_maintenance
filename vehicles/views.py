@@ -13,6 +13,8 @@ from .models import Vehicle
 from .forms import VehicleForm
 from insurance.models import InsurancePolicy
 from insurance.forms import InsurancePolicyForm
+from compliance.models import CarRegistration
+from compliance.forms import CarRegistrationForm
 
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -43,6 +45,13 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
             vehicle=self.object, user=self.request.user
         )
         context["insurance_form"] = InsurancePolicyForm(
+            initial={"vehicle": self.object}
+        )
+        # Add registration-related context
+        context["car_registrations"] = CarRegistration.objects.filter(
+            vehicle=self.object
+        )
+        context["registration_form"] = CarRegistrationForm(
             initial={"vehicle": self.object}
         )
         # Add form for editing the vehicle
