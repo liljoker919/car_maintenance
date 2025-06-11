@@ -13,8 +13,22 @@
     {% if messages %}
     <div class="toast-container position-fixed top-0 end-0 p-3">
         {% for message in messages %}
+        {% if message.tags == 'success' %}
         <div class="toast align-items-center text-white bg-success border-0 show" role="alert" aria-live="assertive"
             aria-atomic="true">
+        {% elif message.tags == 'error' %}
+        <div class="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive"
+            aria-atomic="true">
+        {% elif message.tags == 'warning' %}
+        <div class="toast align-items-center text-white bg-warning border-0 show" role="alert" aria-live="assertive"
+            aria-atomic="true">
+        {% elif message.tags == 'info' %}
+        <div class="toast align-items-center text-white bg-info border-0 show" role="alert" aria-live="assertive"
+            aria-atomic="true">
+        {% else %}
+        <div class="toast align-items-center text-white bg-secondary border-0 show" role="alert" aria-live="assertive"
+            aria-atomic="true">
+        {% endif %}
             <div class="d-flex">
                 <div class="toast-body">
                     {{ message }}

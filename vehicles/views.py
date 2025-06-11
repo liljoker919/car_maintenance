@@ -50,10 +50,11 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class VehicleCreateView(LoginRequiredMixin, CreateView):
+class VehicleCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Vehicle
     form_class = VehicleForm
     template_name = None  # Using modal, no template needed
+    success_message = "Vehicle created successfully."
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -67,10 +68,11 @@ class VehicleCreateView(LoginRequiredMixin, CreateView):
         return redirect('vehicles:vehicle_list')
 
 
-class VehicleUpdateView(LoginRequiredMixin, UpdateView):
+class VehicleUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Vehicle
     form_class = VehicleForm
     template_name = None  # Using modal, no template needed
+    success_message = "Vehicle updated successfully."
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
@@ -92,12 +94,12 @@ class VehicleUpdateView(LoginRequiredMixin, UpdateView):
 
 class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Vehicle
-    success_url = reverse_lazy("vehicle_list")
+    success_url = reverse_lazy("vehicles:vehicle_list")
     success_message = "Vehicle deleted successfully."
     template_name = None  # handled via modal, no confirmation page
 
     def get(self, request, *args, **kwargs):
-        return redirect("vehicle_list")  # disable GET access
+        return redirect("vehicles:vehicle_list")  # disable GET access
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
