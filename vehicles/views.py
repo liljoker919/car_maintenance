@@ -45,32 +45,49 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
         context["insurance_form"] = InsurancePolicyForm(
             initial={"vehicle": self.object}
         )
+        # Add form for editing the vehicle
+        context["form"] = VehicleForm(instance=self.object)
         return context
 
 
 class VehicleCreateView(LoginRequiredMixin, CreateView):
     model = Vehicle
     form_class = VehicleForm
-    template_name = "vehicles/vehicle_form.html"
+    template_name = None  # Using modal, no template needed
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy("vehicle_list")
+        return reverse_lazy("vehicles:vehicle_list")
+
+    def get(self, request, *args, **kwargs):
+        # For GET requests, redirect to vehicle list since we're using modals
+        return redirect('vehicles:vehicle_list')
 
 
 class VehicleUpdateView(LoginRequiredMixin, UpdateView):
     model = Vehicle
     form_class = VehicleForm
-    template_name = "vehicles/vehicle_form.html"
+    template_name = None  # Using modal, no template needed
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
 
     def get_success_url(self):
-        return reverse_lazy("vehicle_list")
+        # Check if request came from detail page or list page
+        referer = self.request.META.get('HTTP_REFERER', '')
+        if 'detail' in referer:
+            return reverse_lazy("vehicles:vehicle_detail", kwargs={'pk': self.object.pk})
+        return reverse_lazy("vehicles:vehicle_list")
+
+    def get(self, request, *args, **kwargs):
+        # For GET requests, redirect to the appropriate page since we're using modals
+        referer = request.META.get('HTTP_REFERER', '')
+        if 'detail' in referer:
+            return redirect('vehicles:vehicle_detail', pk=kwargs['pk'])
+        return redirect('vehicles:vehicle_list')
 
 
 class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):

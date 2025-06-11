@@ -13,26 +13,44 @@
                     {% if form.errors %}
                     <div class="alert alert-danger">Please correct the errors below.</div>
                     {% endif %}
-                    <input type="hidden" name="vehicle_id" value="{{ vehicle.id }}">
                     <div class="mb-3">
                         <label for="make-{{ vehicle.id }}" class="form-label">Make</label>
                         <input type="text" class="form-control" id="make-{{ vehicle.id }}" name="make"
-                            value="{{ vehicle.make }}">
+                            value="{{ vehicle.make }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="model-{{ vehicle.id }}" class="form-label">Model</label>
                         <input type="text" class="form-control" id="model-{{ vehicle.id }}" name="model"
-                            value="{{ vehicle.model }}">
+                            value="{{ vehicle.model }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="year-{{ vehicle.id }}" class="form-label">Year</label>
                         <input type="number" class="form-control" id="year-{{ vehicle.id }}" name="year"
-                            value="{{ vehicle.year }}">
+                            value="{{ vehicle.year }}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="mileage-{{ vehicle.id }}" class="form-label">Mileage</label>
-                        <input type="number" class="form-control" id="mileage-{{ vehicle.id }}" name="mileage"
-                            value="{{ vehicle.mileage }}">
+                        <label for="current_mileage-{{ vehicle.id }}" class="form-label">Current Mileage</label>
+                        <input type="number" class="form-control" id="current_mileage-{{ vehicle.id }}" name="current_mileage"
+                            value="{{ vehicle.current_mileage }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="vin-{{ vehicle.id }}" class="form-label">VIN</label>
+                        <input type="text" class="form-control" id="vin-{{ vehicle.id }}" name="vin"
+                            value="{{ vehicle.vin|default:'' }}" maxlength="17">
+                    </div>
+                    <div class="mb-3">
+                        <label for="condition-{{ vehicle.id }}" class="form-label">Condition</label>
+                        <select class="form-control" id="condition-{{ vehicle.id }}" name="condition" required>
+                            <option value="excellent" {% if vehicle.condition == 'excellent' %}selected{% endif %}>Excellent</option>
+                            <option value="good" {% if vehicle.condition == 'good' %}selected{% endif %}>Good</option>
+                            <option value="fair" {% if vehicle.condition == 'fair' %}selected{% endif %}>Fair</option>
+                            <option value="poor" {% if vehicle.condition == 'poor' %}selected{% endif %}>Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nickname-{{ vehicle.id }}" class="form-label">Nickname</label>
+                        <input type="text" class="form-control" id="nickname-{{ vehicle.id }}" name="nickname"
+                            value="{{ vehicle.nickname|default:'' }}" maxlength="50">
                     </div>
                 </div>
                 <div class="modal-footer">

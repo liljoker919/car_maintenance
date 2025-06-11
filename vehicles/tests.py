@@ -138,3 +138,71 @@ class VehicleDetailTemplateTest(TestCase):
         
         # This test will fail before the fix due to NoReverseMatch error
         # for 'vehicle_edit' URL name
+
+
+class VehicleUpdateViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        self.vehicle = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin='JT2BF28K8X0012345',
+            condition='good',
+            nickname='My Camry'
+        )
+
+    def test_vehicle_update_view_redirects_get(self):
+        """Test that the vehicle update view redirects GET requests since we use modals"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_update', kwargs={'pk': self.vehicle.pk}))
+        
+        # Should redirect instead of rendering a template
+        self.assertEqual(response.status_code, 302)
+        
+        # Should redirect to vehicle list by default
+        self.assertRedirects(response, reverse('vehicles:vehicle_list'))
+
+    def test_vehicle_update_view_post_works(self):
+        """Test that the vehicle update view handles POST requests properly"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        updated_data = {
+            'make': 'Honda',
+            'model': 'Civic',
+            'year': 2021,
+            'current_mileage': 30000,
+            'vin': 'JT2BF28K8X0012346',
+            'condition': 'excellent',
+            'nickname': 'My Honda'
+        }
+        
+        response = self.client.post(
+            reverse('vehicles:vehicle_update', kwargs={'pk': self.vehicle.pk}), 
+            data=updated_data
+        )
+        
+        # Should redirect after successful update
+        self.assertEqual(response.status_code, 302)
+        
+        # Vehicle should be updated
+        self.vehicle.refresh_from_db()
+        self.assertEqual(self.vehicle.make, 'Honda')
+        self.assertEqual(self.vehicle.model, 'Civic')
+        self.assertEqual(self.vehicle.current_mileage, 30000)
+
+    def test_vehicle_create_view_redirects_get(self):
+        """Test that the vehicle create view redirects GET requests since we use modals"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_add'))
+        
+        # Should redirect instead of rendering a template
+        self.assertEqual(response.status_code, 302)
+        
+        # Should redirect to vehicle list
+        self.assertRedirects(response, reverse('vehicles:vehicle_list'))
