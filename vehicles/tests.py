@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
 from .models import Vehicle
+from .forms import VehicleForm
 
 
 class VehicleListTemplateTest(TestCase):
@@ -46,3 +47,55 @@ class VehicleListTemplateTest(TestCase):
         
         # Verify each vehicle card is in its own column
         self.assertContains(response, '<div class="col-md-6 col-lg-4">', count=2)
+
+    def test_add_vehicle_modal_form_fields_displayed(self):
+        """Test that the Add Vehicle modal contains form fields"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_list'))
+        
+        # Check that form is in context
+        self.assertIn('form', response.context)
+        self.assertIsInstance(response.context['form'], VehicleForm)
+        
+        # Check that the modal contains form fields
+        content = response.content.decode()
+        
+        # Verify modal exists
+        self.assertIn('id="addVehicleModal"', content)
+        
+        # Check for specific form fields that should be rendered
+        self.assertIn('name="make"', content)
+        self.assertIn('name="model"', content)
+        self.assertIn('name="year"', content)
+        self.assertIn('name="current_mileage"', content)
+        
+        # Check for field labels
+        self.assertIn('Make', content)
+        self.assertIn('Model', content)
+        self.assertIn('Year', content)
+
+    def test_add_vehicle_form_submission(self):
+        """Test that vehicle can be added via the modal form"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        # Submit form data to the vehicle_add URL (where modal form posts to)
+        form_data = {
+            'make': 'Ford',
+            'model': 'F-150',
+            'year': 2022,
+            'current_mileage': 15000,
+            'vin': '1FTFW1ET5NFC01234',
+            'condition': 'excellent',
+            'nickname': 'My Truck'
+        }
+        
+        response = self.client.post(reverse('vehicles:vehicle_add'), data=form_data)
+        
+        # Should redirect after successful creation
+        self.assertEqual(response.status_code, 302)
+        
+        # Verify vehicle was created
+        new_vehicle = Vehicle.objects.filter(make='Ford', model='F-150').first()
+        self.assertIsNotNone(new_vehicle)
+        self.assertEqual(new_vehicle.user, self.user)
+        self.assertEqual(new_vehicle.year, 2022)

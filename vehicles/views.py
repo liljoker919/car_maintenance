@@ -23,6 +23,11 @@ class VehicleListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = VehicleForm()
+        return context
+
 
 class VehicleDetailView(LoginRequiredMixin, DetailView):
     model = Vehicle
