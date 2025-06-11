@@ -1,11 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, CreateView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
 from .models import Vehicle
 from .forms import VehicleForm
-from django.shortcuts import render, redirect
-from django.views.generic import DeleteView
-from django.contrib.messages.views import SuccessMessageMixin
+from insurance.models import InsurancePolicy
+from insurance.forms import InsurancePolicyForm
 
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -16,27 +23,6 @@ class VehicleListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["form"] = VehicleForm()
-        return context
-
-
-class VehicleCreateView(LoginRequiredMixin, CreateView):
-    model = Vehicle
-    form_class = VehicleForm
-    template_name = (
-        "vehicles/vehicle_form.html"  # used for fallback if accessed directly
-    )
-    success_url = reverse_lazy("vehicle_list")
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
-
-
-from django.views.generic import DetailView
-
 
 class VehicleDetailView(LoginRequiredMixin, DetailView):
     model = Vehicle
@@ -46,43 +32,50 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["insurance_policies"] = InsurancePolicy.objects.filter(
+            vehicle=self.object, user=self.request.user
+        )
+        context["insurance_form"] = InsurancePolicyForm(
+            initial={"vehicle": self.object}
+        )
+        return context
 
-from django.views.generic import UpdateView
+
+class VehicleCreateView(LoginRequiredMixin, CreateView):
+    model = Vehicle
+    form_class = VehicleForm
+    template_name = "vehicles/vehicle_form.html"
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("vehicle_list")
 
 
 class VehicleUpdateView(LoginRequiredMixin, UpdateView):
     model = Vehicle
     form_class = VehicleForm
     template_name = "vehicles/vehicle_form.html"
-    success_url = reverse_lazy("vehicle_list")
-
-    def get_queryset(self):
-        # Ensure users can only edit their own vehicles
-        return Vehicle.objects.filter(user=self.request.user)
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
-
-
-class VehicleDeleteView(LoginRequiredMixin, DeleteView):
-    model = Vehicle
-    template_name = "vehicles/vehicle_confirm_delete.html"
-    success_url = reverse_lazy("vehicle_list")
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy("vehicle_list")
 
 
 class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Vehicle
     success_url = reverse_lazy("vehicle_list")
     success_message = "Vehicle deleted successfully."
-    template_name = None  # prevent full-page rendering
+    template_name = None  # handled via modal, no confirmation page
 
     def get(self, request, *args, **kwargs):
-        # Disable GET access to avoid showing full-page confirmation
-        return redirect("vehicle_list")
+        return redirect("vehicle_list")  # disable GET access
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)

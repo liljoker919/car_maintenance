@@ -3,7 +3,7 @@
     aria-labelledby="editVehicleModalLabel{{ vehicle.id }}" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" action="{% url 'vehicle_edit' vehicle.id %}">
+            <form method="post" action="{% url 'vehicles:vehicle_update' vehicle.id %}">
                 {% csrf_token %}
                 <div class="modal-header">
                     <h5 class="modal-title" id="editVehicleModalLabel{{ vehicle.id }}">Edit Vehicle</h5>

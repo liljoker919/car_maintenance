@@ -5,7 +5,47 @@
 <p><strong>Condition:</strong> {{ vehicle.get_condition_display }}</p>
 <p><strong>VIN:</strong> {{ vehicle.vin }}</p>
 <p><strong>Nickname:</strong> {{ vehicle.nickname }}</p>
-<a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-warning">Edit</a>
-<a href="{% url 'vehicle_delete' vehicle.pk %}" class="btn btn-danger">Delete</a>
-<a href="{% url 'vehicle_list' %}" class="btn btn-secondary">Back</a>
+
+<div class="mb-3">
+    <a href="{% url 'vehicle_edit' vehicle.pk %}" class="btn btn-warning">Edit</a>
+    <a href="{% url 'vehicle_delete' vehicle.pk %}" class="btn btn-danger">Delete</a>
+    <a href="{% url 'vehicle_list' %}" class="btn btn-secondary">Back</a>
+</div>
+
+<hr>
+
+<h3>Insurance Policies</h3>
+
+<!-- Add Insurance Button (always visible) -->
+<div class="mb-3">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addInsuranceModal">
+        Add Insurance
+    </button>
+</div>
+
+{% if insurance_policies %}
+<ul class="list-group mb-4">
+    {% for policy in insurance_policies %}
+    <li class="list-group-item d-flex justify-content-between align-items-start flex-column">
+        <div class="mb-2">
+            <strong>{{ policy.provider }}</strong> - {{ policy.policy_number }}
+        </div>
+        <small class="text-muted">
+            Coverage: {{ policy.coverage_start }} to {{ policy.coverage_end }}<br>
+            Premium: ${{ policy.premium }}
+        </small>
+        <div class="mt-2">
+            <a href="{% url 'insurance_edit' policy.pk %}" class="btn btn-sm btn-outline-primary me-2">Edit</a>
+            <a href="{% url 'insurance_delete' policy.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No insurance policies for this vehicle.</p>
+{% endif %}
+
+<!-- Modal included at bottom so it always loads -->
+{% include "insurance/includes/add_insurance_modal.html" %}
+
 {% endblock %}
