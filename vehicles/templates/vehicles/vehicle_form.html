@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ view.object.pk|yesno:"Edit,Add" }} Vehicle</h2>
+    
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            Please correct the errors below.
+        </div>
+        {% endif %}
+        
+        {% include "vehicles/includes/vehicle_form_fields.html" with form=form %}
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                {{ view.object.pk|yesno:"Update,Save" }} Vehicle
+            </button>
+            <a href="{% url 'vehicles:vehicle_list' %}" class="btn btn-secondary ms-2">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -138,3 +138,52 @@ class VehicleDetailTemplateTest(TestCase):
         
         # This test will fail before the fix due to NoReverseMatch error
         # for 'vehicle_edit' URL name
+
+
+class VehicleUpdateViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        self.vehicle = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin='JT2BF28K8X0012345',
+            condition='good',
+            nickname='My Camry'
+        )
+
+    def test_vehicle_update_view_template_exists(self):
+        """Test that the vehicle update view loads the correct template"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_update', kwargs={'pk': self.vehicle.pk}))
+        
+        # Should render successfully without TemplateDoesNotExist error
+        self.assertEqual(response.status_code, 200)
+        
+        # Should use the correct template
+        self.assertTemplateUsed(response, 'vehicles/vehicle_form.html')
+        
+        # Should contain the form for editing
+        self.assertContains(response, 'form')
+        self.assertContains(response, self.vehicle.make)
+        self.assertContains(response, self.vehicle.model)
+
+    def test_vehicle_create_view_template_exists(self):
+        """Test that the vehicle create view loads the correct template"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_add'))
+        
+        # Should render successfully without TemplateDoesNotExist error
+        self.assertEqual(response.status_code, 200)
+        
+        # Should use the correct template
+        self.assertTemplateUsed(response, 'vehicles/vehicle_form.html')
+        
+        # Should contain the form for creating
+        self.assertContains(response, 'form')
+        self.assertContains(response, 'Add Vehicle')
