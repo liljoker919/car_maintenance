@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "registration",
     "vehicles",
     "insurance",
+    "compliance",
 ]
 
 MIDDLEWARE = [
