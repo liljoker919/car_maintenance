@@ -48,6 +48,19 @@ class VehicleListTemplateTest(TestCase):
         # Verify each vehicle card is in its own column
         self.assertContains(response, '<div class="col-md-6 col-lg-4">', count=2)
 
+    def test_vehicle_mileage_display_in_list(self):
+        """Test that vehicle mileage is correctly displayed in the vehicle list cards"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_list'))
+        
+        # Check that actual mileage values are displayed, not "N/A"
+        self.assertContains(response, 'Mileage: 25000')
+        self.assertContains(response, 'Mileage: 30000')
+        
+        # Ensure "N/A" is not shown when mileage data exists
+        content = response.content.decode()
+        self.assertNotIn('Mileage: N/A', content)
+
     def test_add_vehicle_modal_form_fields_displayed(self):
         """Test that the Add Vehicle modal contains form fields"""
         self.client.login(username='testuser', password='testpass123')

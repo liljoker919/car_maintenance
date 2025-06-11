@@ -35,7 +35,7 @@
                 <div class="card mb-4 hover-shadow">
                     <div class="card-body">
                         <h5 class="card-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h5>
-                        <p class="card-text">Mileage: {{ vehicle.mileage|default:"N/A" }}</p>
+                        <p class="card-text">Mileage: {{ vehicle.current_mileage|default:"N/A" }}</p>
                     </div>
                 </div>
             </a>
