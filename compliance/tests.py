@@ -249,3 +249,48 @@ class CarRegistrationViewTest(TestCase):
         
         # Should return 404 (registration not in queryset for this user)
         self.assertEqual(response.status_code, 404)
+    
+    def test_registration_add_modal_validation_error(self):
+        """Test that validation errors are handled properly in modal"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_add')
+        data = {
+            'vehicle': self.vehicle.id,
+            'registration_number': '',  # Missing required field
+            'state': 'CA',
+            'registration_date': date.today(),
+            'expiration_date': date.today() + timedelta(days=365),
+        }
+        response = self.client.post(url, data)
+        # Should redirect back to vehicle detail page
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Follow the redirect to check session data
+        response = self.client.get(reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        self.assertEqual(response.status_code, 200)
+        
+    def test_registration_edit_modal_validation_error(self):
+        """Test that validation errors are handled properly in edit modal"""
+        registration = CarRegistration.objects.create(
+            vehicle=self.vehicle,
+            registration_number='EDIT123',
+            state='CA',
+            registration_date=date.today(),
+            expiration_date=date.today() + timedelta(days=365)
+        )
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_edit', kwargs={'pk': registration.pk})
+        data = {
+            'vehicle': self.vehicle.id,
+            'registration_number': '',  # Missing required field
+            'state': 'CA',
+            'registration_date': date.today(),
+            'expiration_date': date.today() + timedelta(days=365),
+        }
+        response = self.client.post(url, data)
+        # Should redirect back to vehicle detail page
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Follow the redirect to check session data
+        response = self.client.get(reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        self.assertEqual(response.status_code, 200)

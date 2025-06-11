@@ -38,3 +38,13 @@
         </form>
     </div>
 </div>
+
+<!-- JavaScript to auto-open modal if there are form errors -->
+{% if registration_form.errors %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var addModal = new bootstrap.Modal(document.getElementById('addRegistrationModal'));
+    addModal.show();
+});
+</script>
+{% endif %}
