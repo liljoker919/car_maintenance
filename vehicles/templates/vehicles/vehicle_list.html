@@ -30,38 +30,34 @@
     {% if vehicles %}
     <div class="row">
         {% for vehicle in vehicles %}
-        <div class="col-md-6">
+        <div class="col-md-6 col-lg-4">
             <a href="{% url 'vehicles:vehicle_detail' vehicle.id %}" class="text-decoration-none text-dark">
-                <a href="{% url 'vehicles:vehicle_detail' vehicle.id %}" class="text-decoration-none text-dark">
-                    <div class="card mb-4 hover-shadow">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h5>
-                            <p class="card-text">Mileage: {{ vehicle.mileage|default:"N/A" }}</p>
-                        </div>
+                <div class="card mb-4 hover-shadow">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h5>
+                        <p class="card-text">Mileage: {{ vehicle.mileage|default:"N/A" }}</p>
                     </div>
-                </a>
-                <div class="d-flex gap-2 mb-4">
-                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#editVehicleModal{{ vehicle.id }}">
-                        Edit
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#deleteVehicleModal{{ vehicle.id }}">
-                        Delete
-                    </button>
                 </div>
+            </a>
+            <div class="d-flex gap-2 mb-4">
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#editVehicleModal{{ vehicle.id }}">
+                    Edit
+                </button>
+                <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#deleteVehicleModal{{ vehicle.id }}">
+                    Delete
+                </button>
+            </div>
 
-
-                {% include "vehicles/includes/edit_vehicle_modal.html" with vehicle=vehicle %}
-                {% include "vehicles/includes/delete_vehicle_modal.html" with vehicle=vehicle %}
-
-
-                {% endfor %}
+            {% include "vehicles/includes/edit_vehicle_modal.html" with vehicle=vehicle %}
+            {% include "vehicles/includes/delete_vehicle_modal.html" with vehicle=vehicle %}
         </div>
-        {% else %}
-        <p class="text-muted">No vehicles added yet.</p>
-        {% endif %}
+        {% endfor %}
     </div>
+    {% else %}
+    <p class="text-muted">No vehicles added yet.</p>
+    {% endif %}
 
     <!-- Add Vehicle Modal -->
     <div class="modal fade {% if form.errors %}show d-block{% endif %}" id="addVehicleModal" tabindex="-1"
