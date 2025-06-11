@@ -100,6 +100,57 @@ class VehicleListTemplateTest(TestCase):
         self.assertEqual(new_vehicle.user, self.user)
         self.assertEqual(new_vehicle.year, 2022)
 
+    def test_add_vehicle_shows_success_message(self):
+        """Test that adding a vehicle shows a success toast message"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        form_data = {
+            'make': 'Ford',
+            'model': 'F-150',
+            'year': 2022,
+            'current_mileage': 15000,
+            'vin': '1FTFW1ET5NFC01234',
+            'condition': 'excellent',
+            'nickname': 'My Truck'
+        }
+        
+        response = self.client.post(reverse('vehicles:vehicle_add'), data=form_data, follow=True)
+        
+        # Check that success message is present
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Vehicle created successfully.')
+        self.assertEqual(messages[0].tags, 'success')
+
+    def test_toast_html_rendered_correctly(self):
+        """Test that toast HTML is correctly rendered with proper Bootstrap classes"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        form_data = {
+            'make': 'Ford',
+            'model': 'F-150',
+            'year': 2022,
+            'current_mileage': 15000,
+            'vin': '1FTFW1ET5NFC01234',
+            'condition': 'excellent',
+            'nickname': 'My Truck'
+        }
+        
+        response = self.client.post(reverse('vehicles:vehicle_add'), data=form_data, follow=True)
+        content = response.content.decode()
+        
+        # Check that toast container is present
+        self.assertIn('toast-container position-fixed top-0 end-0 p-3', content)
+        
+        # Check that success toast is rendered with correct classes
+        self.assertIn('toast align-items-center text-white bg-success border-0 show', content)
+        
+        # Check that toast body contains the message
+        self.assertIn('Vehicle created successfully.', content)
+        
+        # Check that close button is present
+        self.assertIn('btn-close btn-close-white me-2 m-auto', content)
+
 
 class VehicleDetailTemplateTest(TestCase):
     def setUp(self):
@@ -195,6 +246,50 @@ class VehicleUpdateViewTest(TestCase):
         self.assertEqual(self.vehicle.make, 'Honda')
         self.assertEqual(self.vehicle.model, 'Civic')
         self.assertEqual(self.vehicle.current_mileage, 30000)
+
+    def test_vehicle_update_shows_success_message(self):
+        """Test that updating a vehicle shows a success toast message"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        updated_data = {
+            'make': 'Honda',
+            'model': 'Civic',
+            'year': 2021,
+            'current_mileage': 30000,
+            'vin': 'JT2BF28K8X0012346',
+            'condition': 'excellent',
+            'nickname': 'My Honda'
+        }
+        
+        response = self.client.post(
+            reverse('vehicles:vehicle_update', kwargs={'pk': self.vehicle.pk}), 
+            data=updated_data,
+            follow=True
+        )
+        
+        # Check that success message is present
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Vehicle updated successfully.')
+        self.assertEqual(messages[0].tags, 'success')
+
+    def test_vehicle_delete_shows_success_message(self):
+        """Test that deleting a vehicle shows a success toast message"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.post(
+            reverse('vehicles:vehicle_delete', kwargs={'pk': self.vehicle.pk}),
+            follow=True
+        )
+        
+        # Check that success message is present
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Vehicle deleted successfully.')
+        self.assertEqual(messages[0].tags, 'success')
+        
+        # Vehicle should be deleted
+        self.assertFalse(Vehicle.objects.filter(pk=self.vehicle.pk).exists())
 
     def test_vehicle_create_view_redirects_get(self):
         """Test that the vehicle create view redirects GET requests since we use modals"""
