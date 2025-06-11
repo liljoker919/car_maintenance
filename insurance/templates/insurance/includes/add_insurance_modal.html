@@ -1,7 +1,7 @@
 <div class="modal fade" id="addInsuranceModal" tabindex="-1" aria-labelledby="addInsuranceModalLabel"
     aria-hidden="true">
     <div class="modal-dialog">
-        <form method="post" action="{% url 'insurance_add' %}" novalidate>
+        <form method="post" action="{% url 'insurance:insurance_add' %}" novalidate>
             {% csrf_token %}
             <div class="modal-content">
                 <div class="modal-header">
