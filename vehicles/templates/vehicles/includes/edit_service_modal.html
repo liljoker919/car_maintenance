@@ -1,0 +1,83 @@
+<!-- edit_service_modal.html -->
+<div class="modal fade" id="editServiceModal{{ record.id }}" tabindex="-1"
+    aria-labelledby="editServiceModalLabel{{ record.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'vehicles:service_update' record.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editServiceModalLabel{{ record.id }}">Edit Service Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if service_edit_form_errors and service_edit_form_id == record.id %}
+                    <div class="alert alert-danger">Please correct the errors below.</div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="vehicle-{{ record.id }}" class="form-label">Vehicle</label>
+                        <input type="hidden" name="vehicle" value="{{ record.vehicle.id }}">
+                        <input type="text" class="form-control" id="vehicle-{{ record.id }}" 
+                            value="{{ record.vehicle }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="service_type-{{ record.id }}" class="form-label">Service Type</label>
+                        <select class="form-select" id="service_type-{{ record.id }}" name="service_type" required>
+                            <option value="oil_change" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "oil_change" %}selected{% endif %}{% else %}{% if record.service_type == "oil_change" %}selected{% endif %}{% endif %}>Oil Change</option>
+                            <option value="tire_rotation" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "tire_rotation" %}selected{% endif %}{% else %}{% if record.service_type == "tire_rotation" %}selected{% endif %}{% endif %}>Tire Rotation</option>
+                            <option value="brake_service" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "brake_service" %}selected{% endif %}{% else %}{% if record.service_type == "brake_service" %}selected{% endif %}{% endif %}>Brake Service</option>
+                            <option value="transmission_service" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "transmission_service" %}selected{% endif %}{% else %}{% if record.service_type == "transmission_service" %}selected{% endif %}{% endif %}>Transmission Service</option>
+                            <option value="air_filter" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "air_filter" %}selected{% endif %}{% else %}{% if record.service_type == "air_filter" %}selected{% endif %}{% endif %}>Air Filter Replacement</option>
+                            <option value="cabin_filter" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "cabin_filter" %}selected{% endif %}{% else %}{% if record.service_type == "cabin_filter" %}selected{% endif %}{% endif %}>Cabin Filter Replacement</option>
+                            <option value="tune_up" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "tune_up" %}selected{% endif %}{% else %}{% if record.service_type == "tune_up" %}selected{% endif %}{% endif %}>Tune Up</option>
+                            <option value="inspection" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "inspection" %}selected{% endif %}{% else %}{% if record.service_type == "inspection" %}selected{% endif %}{% endif %}>Inspection</option>
+                            <option value="repair" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "repair" %}selected{% endif %}{% else %}{% if record.service_type == "repair" %}selected{% endif %}{% endif %}>Repair</option>
+                            <option value="other" {% if service_edit_form_data and service_edit_form_id == record.id %}{% if service_edit_form_data.service_type == "other" %}selected{% endif %}{% else %}{% if record.service_type == "other" %}selected{% endif %}{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date-{{ record.id }}" class="form-label">Date</label>
+                        <input type="date" class="form-control" 
+                               id="date-{{ record.id }}" name="date"
+                               value="{% if service_edit_form_data and service_edit_form_id == record.id %}{{ service_edit_form_data.date }}{% else %}{{ record.date|date:'Y-m-d' }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="mileage-{{ record.id }}" class="form-label">Mileage</label>
+                        <input type="number" class="form-control" 
+                               id="mileage-{{ record.id }}" name="mileage"
+                               value="{% if service_edit_form_data and service_edit_form_id == record.id %}{{ service_edit_form_data.mileage }}{% else %}{{ record.mileage }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cost-{{ record.id }}" class="form-label">Cost</label>
+                        <input type="number" step="0.01" class="form-control" 
+                               id="cost-{{ record.id }}" name="cost"
+                               value="{% if service_edit_form_data and service_edit_form_id == record.id %}{{ service_edit_form_data.cost }}{% else %}{{ record.cost }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes-{{ record.id }}" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes-{{ record.id }}" name="notes" rows="3">{% if service_edit_form_data and service_edit_form_id == record.id %}{{ service_edit_form_data.notes }}{% else %}{{ record.notes }}{% endif %}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Service Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to auto-open modal if there are form errors for this specific service record -->
+{% if service_edit_form_errors and service_edit_form_id == record.id %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var editModal = new bootstrap.Modal(document.getElementById('editServiceModal{{ record.id }}'));
+    editModal.show();
+});
+</script>
+{% endif %}

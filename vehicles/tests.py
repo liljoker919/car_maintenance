@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
-from .models import Vehicle
-from .forms import VehicleForm
+from .models import Vehicle, ServiceRecord
+from .forms import VehicleForm, ServiceRecordForm
+from datetime import date
+from decimal import Decimal
 
 
 class VehicleListTemplateTest(TestCase):
@@ -314,3 +316,260 @@ class VehicleUpdateViewTest(TestCase):
         
         # Should redirect to vehicle list
         self.assertRedirects(response, reverse('vehicles:vehicle_list'))
+
+
+class ServiceRecordViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            password='otherpass123'
+        )
+        self.vehicle = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin='JT2BF28K8X0012345',
+            condition='good',
+            nickname='My Camry'
+        )
+        self.other_vehicle = Vehicle.objects.create(
+            user=self.other_user,
+            make='Honda',
+            model='Civic',
+            year=2019,
+            current_mileage=30000
+        )
+        self.service_record = ServiceRecord.objects.create(
+            vehicle=self.vehicle,
+            service_type='oil_change',
+            date=date.today(),
+            mileage=25000,
+            cost=Decimal('35.99'),
+            notes='Regular oil change'
+        )
+
+    def test_service_record_create_requires_login(self):
+        """Test that service record creation requires login"""
+        response = self.client.get(reverse('vehicles:service_add'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response.url)
+
+    def test_service_record_create_success(self):
+        """Test successful service record creation"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        form_data = {
+            'vehicle': self.vehicle.id,
+            'service_type': 'tire_rotation',
+            'date': date.today(),
+            'mileage': 25500,
+            'cost': '25.00',
+            'notes': 'Rotated all four tires'
+        }
+        
+        response = self.client.post(reverse('vehicles:service_add'), data=form_data)
+        
+        # Should redirect after successful creation
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Verify service record was created
+        new_record = ServiceRecord.objects.filter(service_type='tire_rotation').first()
+        self.assertIsNotNone(new_record)
+        self.assertEqual(new_record.vehicle, self.vehicle)
+        self.assertEqual(new_record.mileage, 25500)
+
+    def test_service_record_create_prevents_other_users_vehicle(self):
+        """Test that users can't add service records to other users' vehicles"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        form_data = {
+            'vehicle': self.other_vehicle.id,  # Try to add to other user's vehicle
+            'service_type': 'oil_change',
+            'date': date.today(),
+            'mileage': 30000,
+            'cost': '40.00',
+            'notes': 'Unauthorized service'
+        }
+        
+        response = self.client.post(reverse('vehicles:service_add'), data=form_data)
+        
+        # Should redirect (not create the record)
+        self.assertEqual(response.status_code, 302)
+        
+        # Should not create the service record
+        self.assertFalse(ServiceRecord.objects.filter(notes='Unauthorized service').exists())
+
+    def test_service_record_update_requires_ownership(self):
+        """Test that users can only edit service records for their own vehicles"""
+        # Create service record for other user's vehicle
+        other_record = ServiceRecord.objects.create(
+            vehicle=self.other_vehicle,
+            service_type='brake_service',
+            date=date.today(),
+            mileage=30000,
+            cost=Decimal('150.00'),
+            notes='Brake pad replacement'
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vehicles:service_update', kwargs={'pk': other_record.pk})
+        response = self.client.get(url)
+        
+        # Should return 404 (record not in queryset for this user)
+        self.assertEqual(response.status_code, 404)
+
+    def test_service_record_update_success(self):
+        """Test successful service record update"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        updated_data = {
+            'vehicle': self.vehicle.id,
+            'service_type': 'brake_service',
+            'date': date.today(),
+            'mileage': 25100,
+            'cost': '125.50',
+            'notes': 'Updated service notes'
+        }
+        
+        response = self.client.post(
+            reverse('vehicles:service_update', kwargs={'pk': self.service_record.pk}), 
+            data=updated_data
+        )
+        
+        # Should redirect after successful update
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Service record should be updated
+        self.service_record.refresh_from_db()
+        self.assertEqual(self.service_record.service_type, 'brake_service')
+        self.assertEqual(self.service_record.mileage, 25100)
+        self.assertEqual(str(self.service_record.cost), '125.50')
+
+    def test_service_record_delete_requires_ownership(self):
+        """Test that users can only delete service records for their own vehicles"""
+        # Create service record for other user's vehicle
+        other_record = ServiceRecord.objects.create(
+            vehicle=self.other_vehicle,
+            service_type='repair',
+            date=date.today(),
+            mileage=30000,
+            cost=Decimal('500.00'),
+            notes='Engine repair'
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('vehicles:service_delete', kwargs={'pk': other_record.pk})
+        response = self.client.get(url)
+        
+        # Should return 404 (record not in queryset for this user)
+        self.assertEqual(response.status_code, 404)
+
+    def test_service_record_delete_success(self):
+        """Test successful service record deletion"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.post(
+            reverse('vehicles:service_delete', kwargs={'pk': self.service_record.pk})
+        )
+        
+        # Should redirect after successful deletion
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Service record should be deleted
+        self.assertFalse(ServiceRecord.objects.filter(pk=self.service_record.pk).exists())
+
+    def test_vehicle_detail_shows_service_records(self):
+        """Test that vehicle detail page displays service records"""
+        self.client.login(username='testuser', password='testpass123')
+        response = self.client.get(reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Should render successfully
+        self.assertEqual(response.status_code, 200)
+        
+        # Should contain service records section
+        self.assertContains(response, 'Service Records')
+        self.assertContains(response, 'Add Service Record')
+        
+        # Should show the existing service record
+        self.assertContains(response, 'Oil Change')
+        self.assertContains(response, '$35.99')
+        self.assertContains(response, 'Regular oil change')
+
+    def test_service_record_form_limits_vehicles_to_user(self):
+        """Test that ServiceRecordForm only shows vehicles belonging to the user"""
+        form = ServiceRecordForm(user=self.user)
+        
+        # Should only include the user's vehicles in the queryset
+        vehicle_choices = list(form.fields['vehicle'].queryset)
+        self.assertIn(self.vehicle, vehicle_choices)
+        self.assertNotIn(self.other_vehicle, vehicle_choices)
+
+    def test_service_record_create_shows_success_message(self):
+        """Test that creating a service record shows a success toast message"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        form_data = {
+            'vehicle': self.vehicle.id,
+            'service_type': 'inspection',
+            'date': date.today(),
+            'mileage': 25200,
+            'cost': '20.00',
+            'notes': 'Annual inspection'
+        }
+        
+        response = self.client.post(reverse('vehicles:service_add'), data=form_data, follow=True)
+        
+        # Check that success message is present
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Service record created successfully.')
+        self.assertEqual(messages[0].tags, 'success')
+
+    def test_service_record_update_shows_success_message(self):
+        """Test that updating a service record shows a success toast message"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        updated_data = {
+            'vehicle': self.vehicle.id,
+            'service_type': 'tune_up',
+            'date': date.today(),
+            'mileage': 25300,
+            'cost': '150.00',
+            'notes': 'Full tune-up service'
+        }
+        
+        response = self.client.post(
+            reverse('vehicles:service_update', kwargs={'pk': self.service_record.pk}), 
+            data=updated_data,
+            follow=True
+        )
+        
+        # Check that success message is present
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Service record updated successfully.')
+        self.assertEqual(messages[0].tags, 'success')
+
+    def test_service_record_delete_shows_success_message(self):
+        """Test that deleting a service record shows a success toast message"""
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.post(
+            reverse('vehicles:service_delete', kwargs={'pk': self.service_record.pk}),
+            follow=True
+        )
+        
+        # Check that success message is present
+        messages = list(response.context['messages'])
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), 'Service record deleted successfully.')
+        self.assertEqual(messages[0].tags, 'success')

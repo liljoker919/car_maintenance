@@ -79,6 +79,53 @@
 
 <hr>
 
+<h3>Service Records</h3>
+
+<!-- Add Service Record Button (always visible) -->
+<div class="mb-3">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+        Add Service Record
+    </button>
+</div>
+
+{% if service_records %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Service Type</th>
+                <th>Mileage</th>
+                <th>Cost</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in service_records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.get_service_type_display }}</td>
+                <td>{{ record.mileage|floatformat:0 }}</td>
+                <td>${{ record.cost }}</td>
+                <td>{{ record.notes|default:""|truncatewords:5 }}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" 
+                        data-bs-target="#editServiceModal{{ record.id }}">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" 
+                        data-bs-target="#deleteServiceModal{{ record.id }}">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No service records for this vehicle.</p>
+{% endif %}
+
+<hr>
+
 <h3>Vehicle Registrations</h3>
 
 <!-- Add Registration Button (always visible) -->
@@ -123,12 +170,19 @@
 <!-- Modal included at bottom so it always loads -->
 {% include "insurance/includes/add_insurance_modal.html" %}
 {% include "compliance/includes/add_registration_modal.html" %}
+{% include "vehicles/includes/add_service_modal.html" %}
 {% include "vehicles/includes/edit_vehicle_modal.html" with vehicle=vehicle %}
 
 <!-- Include edit and delete modals for each registration -->
 {% for registration in car_registrations %}
 {% include "compliance/includes/edit_registration_modal.html" with registration=registration %}
 {% include "compliance/includes/delete_registration_modal.html" with registration=registration %}
+{% endfor %}
+
+<!-- Include edit and delete modals for each service record -->
+{% for record in service_records %}
+{% include "vehicles/includes/edit_service_modal.html" with record=record %}
+{% include "vehicles/includes/delete_service_modal.html" with record=record %}
 {% endfor %}
 
 </div>
