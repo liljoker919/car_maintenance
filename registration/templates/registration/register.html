@@ -1,56 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Create an Account</h2>
+<div class="container mt-4" style="max-width: 600px;">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h2 class="mb-4 text-center">Create an Account</h2>
 
-    <!-- Error Feedback -->
-    {% if form.errors %}
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            {% for field in form %}
-            {% for error in field.errors %}
-            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-            {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-            <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
+            <!-- Error Feedback -->
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <form method="post" class="mb-3">
+                {% csrf_token %}
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        {{ form.username.label_tag }} {{ form.username }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.email.label_tag }} {{ form.email }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        {{ form.first_name.label_tag }} {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.last_name.label_tag }} {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        {{ form.password1.label_tag }} {{ form.password1 }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.password2.label_tag }} {{ form.password2 }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mb-3">Register</button>
+            </form>
+            
+            <div class="text-center">
+                <a href="{% url 'login' %}" class="btn btn-link">Already have an account? Login here.</a>
+            </div>
+        </div>
     </div>
-    {% endif %}
-
-    <form method="post" class="mb-4">
-        {% csrf_token %}
-        <div class="row mb-3">
-            <div class="col-md-6">
-                {{ form.username.label_tag }} {{ form.username }}
-            </div>
-            <div class="col-md-6">
-                {{ form.email.label_tag }} {{ form.email }}
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                {{ form.first_name.label_tag }} {{ form.first_name }}
-            </div>
-            <div class="col-md-6">
-                {{ form.last_name.label_tag }} {{ form.last_name }}
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                {{ form.password1.label_tag }} {{ form.password1 }}
-            </div>
-            <div class="col-md-6">
-                {{ form.password2.label_tag }} {{ form.password2 }}
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Register</button>
-        <a href="{% url 'login' %}" class="btn btn-link">Already have an account? Login here.</a>
-    </form>
 </div>
 {% endblock %}

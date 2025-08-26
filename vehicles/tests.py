@@ -38,17 +38,17 @@ class VehicleListTemplateTest(TestCase):
         self.assertContains(response, 'Honda Civic')
         
         # Check for proper Bootstrap grid classes
-        self.assertContains(response, 'col-md-6 col-lg-4')
+        self.assertContains(response, 'col-md-6 col-lg-4 mb-3')
         
         # Check that there's no duplicate anchor tags
         content = response.content.decode()
-        card_sections = content.split('<div class="card mb-4 hover-shadow">')
+        card_sections = content.split('<div class="card shadow-sm h-100">')
         
         # Should have 3 sections: before first card, after first card, after second card
         self.assertEqual(len(card_sections), 3)
         
         # Verify each vehicle card is in its own column
-        self.assertContains(response, '<div class="col-md-6 col-lg-4">', count=2)
+        self.assertContains(response, '<div class="col-md-6 col-lg-4 mb-3">', count=2)
 
     def test_vehicle_mileage_display_in_list(self):
         """Test that vehicle mileage is correctly displayed in the vehicle list cards"""

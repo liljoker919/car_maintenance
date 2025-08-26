@@ -44,23 +44,23 @@
     {% if vehicles %}
     <div class="row">
         {% for vehicle in vehicles %}
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4 mb-3">
             <a href="{% url 'vehicles:vehicle_detail' vehicle.id %}" class="text-decoration-none text-dark">
-                <div class="card mb-4 hover-shadow">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h5>
-                        <p class="card-text">Mileage: {{ vehicle.current_mileage|default:"N/A" }}</p>
+                <div class="card shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <h5 class="card-title mb-2">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h5>
+                        <p class="card-text mb-0">Mileage: {{ vehicle.current_mileage|default:"N/A" }}</p>
                     </div>
                 </div>
             </a>
-            <div class="d-flex gap-2 mb-4">
+            <div class="d-flex gap-2 mt-2 mb-3">
                 <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
                     data-bs-target="#editVehicleModal{{ vehicle.id }}">
-                    Edit
+                    <i class="bi bi-pencil"></i> Edit
                 </button>
                 <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
                     data-bs-target="#deleteVehicleModal{{ vehicle.id }}">
-                    Delete
+                    <i class="bi bi-trash"></i> Delete
                 </button>
             </div>
 
