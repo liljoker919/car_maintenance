@@ -9,8 +9,8 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
-from .models import Vehicle
-from .forms import VehicleForm
+from .models import Vehicle, ServiceRecord
+from .forms import VehicleForm, ServiceRecordForm
 from insurance.models import InsurancePolicy
 from insurance.forms import InsurancePolicyForm
 from compliance.models import CarRegistration
@@ -51,6 +51,38 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
         context["car_registrations"] = CarRegistration.objects.filter(
             vehicle=self.object
         )
+        
+        # Add service records context
+        context["service_records"] = ServiceRecord.objects.filter(
+            vehicle=self.object
+        )
+        
+        # Check for service record form errors in session
+        service_form_errors = self.request.session.pop('service_form_errors', None)
+        service_form_data = self.request.session.pop('service_form_data', None)
+        
+        if service_form_errors and service_form_data:
+            # Recreate form with errors and data for the add modal
+            import json
+            from django.forms.utils import ErrorDict
+            
+            service_form = ServiceRecordForm(data=service_form_data, user=self.request.user)
+            service_form._errors = ErrorDict(json.loads(service_form_errors))
+            context["service_form"] = service_form
+        else:
+            context["service_form"] = ServiceRecordForm(
+                initial={"vehicle": self.object}, user=self.request.user
+            )
+
+        # Check for service record edit form errors in session
+        service_edit_form_errors = self.request.session.pop('service_edit_form_errors', None)
+        service_edit_form_data = self.request.session.pop('service_edit_form_data', None)
+        service_edit_form_id = self.request.session.pop('service_edit_form_id', None)
+        
+        if service_edit_form_errors and service_edit_form_data and service_edit_form_id:
+            context["service_edit_form_errors"] = service_edit_form_errors
+            context["service_edit_form_data"] = service_edit_form_data  
+            context["service_edit_form_id"] = service_edit_form_id
         
         # Check for registration form errors in session
         registration_form_errors = self.request.session.pop('registration_form_errors', None)
@@ -140,3 +172,91 @@ class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
+
+
+# ServiceRecord CRUD Views
+class ServiceRecordCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = ServiceRecord
+    form_class = ServiceRecordForm
+    template_name = None  # Using modal, no template needed
+    success_message = "Service record created successfully."
+
+    def form_valid(self, form):
+        # Ensure the service record belongs to a vehicle owned by the user
+        if form.instance.vehicle.user != self.request.user:
+            return redirect('vehicles:vehicle_list')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        # Store form errors and data in session for modal display
+        import json
+        self.request.session['service_form_errors'] = json.dumps(dict(form.errors))
+        self.request.session['service_form_data'] = form.data
+        
+        # Redirect back to vehicle detail page
+        vehicle_id = form.data.get('vehicle')
+        if vehicle_id:
+            return redirect('vehicles:vehicle_detail', pk=vehicle_id)
+        return redirect('vehicles:vehicle_list')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy("vehicles:vehicle_detail", kwargs={'pk': self.object.vehicle.pk})
+
+    def get(self, request, *args, **kwargs):
+        # For GET requests, redirect to vehicle list since we're using modals
+        return redirect('vehicles:vehicle_list')
+
+
+class ServiceRecordUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = ServiceRecord
+    form_class = ServiceRecordForm
+    template_name = None  # Using modal, no template needed
+    success_message = "Service record updated successfully."
+
+    def get_queryset(self):
+        # Only allow editing service records for vehicles owned by the user
+        return ServiceRecord.objects.filter(vehicle__user=self.request.user)
+
+    def form_invalid(self, form):
+        # Store form errors and data in session for modal display
+        import json
+        self.request.session['service_edit_form_errors'] = json.dumps(dict(form.errors))
+        self.request.session['service_edit_form_data'] = form.data
+        self.request.session['service_edit_form_id'] = self.object.id
+        
+        # Redirect back to vehicle detail page
+        return redirect('vehicles:vehicle_detail', pk=self.object.vehicle.pk)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy("vehicles:vehicle_detail", kwargs={'pk': self.object.vehicle.pk})
+
+    def get(self, request, *args, **kwargs):
+        # For GET requests, redirect to vehicle detail page
+        return redirect('vehicles:vehicle_detail', pk=self.get_object().vehicle.pk)
+
+
+class ServiceRecordDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = ServiceRecord
+    success_message = "Service record deleted successfully."
+    template_name = None  # handled via modal, no confirmation page
+
+    def get_queryset(self):
+        # Only allow deleting service records for vehicles owned by the user
+        return ServiceRecord.objects.filter(vehicle__user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy("vehicles:vehicle_detail", kwargs={'pk': self.object.vehicle.pk})
+
+    def get(self, request, *args, **kwargs):
+        # For GET requests, redirect to vehicle detail page
+        return redirect('vehicles:vehicle_detail', pk=self.get_object().vehicle.pk)
