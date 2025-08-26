@@ -13,6 +13,8 @@ from .models import Vehicle
 from .forms import VehicleForm
 from insurance.models import InsurancePolicy
 from insurance.forms import InsurancePolicyForm
+from compliance.models import CarRegistration
+from compliance.forms import CarRegistrationForm
 
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -45,6 +47,41 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
         context["insurance_form"] = InsurancePolicyForm(
             initial={"vehicle": self.object}
         )
+        # Add registration-related context
+        context["car_registrations"] = CarRegistration.objects.filter(
+            vehicle=self.object
+        )
+        
+        # Check for registration form errors in session
+        registration_form_errors = self.request.session.pop('registration_form_errors', None)
+        registration_form_data = self.request.session.pop('registration_form_data', None)
+        
+        if registration_form_errors and registration_form_data:
+            # Recreate form with errors and data for the add modal
+            import json
+            from django.forms.utils import ErrorDict
+            from django.utils.safestring import mark_safe
+            
+            registration_form = CarRegistrationForm(data=registration_form_data, initial={"vehicle": self.object})
+            # Manually add the errors to the form
+            registration_form._errors = ErrorDict(json.loads(registration_form_errors))
+            context["registration_form"] = registration_form
+        else:
+            context["registration_form"] = CarRegistrationForm(
+                initial={"vehicle": self.object}
+            )
+
+        # Check for edit form errors in session
+        registration_edit_form_errors = self.request.session.pop('registration_edit_form_errors', None)
+        registration_edit_form_data = self.request.session.pop('registration_edit_form_data', None)
+        registration_edit_form_id = self.request.session.pop('registration_edit_form_id', None)
+        
+        if registration_edit_form_errors and registration_edit_form_data and registration_edit_form_id:
+            # Store edit form errors to be displayed in the specific edit modal
+            context["registration_edit_form_errors"] = registration_edit_form_errors
+            context["registration_edit_form_data"] = registration_edit_form_data  
+            context["registration_edit_form_id"] = registration_edit_form_id
+        
         # Add form for editing the vehicle
         context["form"] = VehicleForm(instance=self.object)
         return context

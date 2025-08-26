@@ -1,0 +1,98 @@
+<!-- edit_registration_modal.html -->
+<div class="modal fade" id="editRegistrationModal{{ registration.id }}" tabindex="-1"
+    aria-labelledby="editRegistrationModalLabel{{ registration.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'compliance:registration_edit' registration.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRegistrationModalLabel{{ registration.id }}">Edit Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% if registration_edit_form_errors and registration_edit_form_id == registration.id %}
+                    <div class="alert alert-danger">Please correct the errors below.</div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="vehicle-{{ registration.id }}" class="form-label">Vehicle</label>
+                        <input type="hidden" name="vehicle" value="{{ registration.vehicle.id }}">
+                        <input type="text" class="form-control" id="vehicle-{{ registration.id }}" 
+                            value="{{ registration.vehicle }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="registration_number-{{ registration.id }}" class="form-label">Registration Number</label>
+                        <input type="text" class="form-control" 
+                               id="registration_number-{{ registration.id }}" name="registration_number"
+                               value="{% if registration_edit_form_data and registration_edit_form_id == registration.id %}{{ registration_edit_form_data.registration_number }}{% else %}{{ registration.registration_number }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="state-{{ registration.id }}" class="form-label">State</label>
+                        <select class="form-select" id="state-{{ registration.id }}" name="state" required>
+                            {% load compliance_extras %}
+                            {% get_state_choices as state_choices %}
+                            {% for value, label in state_choices %}
+                            <option value="{{ value }}" 
+                                {% if registration_edit_form_data and registration_edit_form_id == registration.id %}
+                                    {% if registration_edit_form_data.state == value %}selected{% endif %}
+                                {% else %}
+                                    {% if registration.state == value %}selected{% endif %}
+                                {% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="registration_date-{{ registration.id }}" class="form-label">Registration Date</label>
+                        <input type="date" class="form-control" 
+                               id="registration_date-{{ registration.id }}" name="registration_date"
+                               value="{% if registration_edit_form_data and registration_edit_form_id == registration.id %}{{ registration_edit_form_data.registration_date }}{% else %}{{ registration.registration_date|date:'Y-m-d' }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="expiration_date-{{ registration.id }}" class="form-label">Expiration Date</label>
+                        <input type="date" class="form-control" 
+                               id="expiration_date-{{ registration.id }}" name="expiration_date"
+                               value="{% if registration_edit_form_data and registration_edit_form_id == registration.id %}{{ registration_edit_form_data.expiration_date }}{% else %}{{ registration.expiration_date|date:'Y-m-d' }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="inspection_due_date-{{ registration.id }}" class="form-label">Inspection Due Date</label>
+                        <input type="date" class="form-control" 
+                               id="inspection_due_date-{{ registration.id }}" name="inspection_due_date"
+                               value="{% if registration_edit_form_data and registration_edit_form_id == registration.id %}{{ registration_edit_form_data.inspection_due_date }}{% else %}{{ registration.inspection_due_date|date:'Y-m-d'|default:'' }}{% endif %}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="inspection_completed_date-{{ registration.id }}" class="form-label">Inspection Completed Date</label>
+                        <input type="date" class="form-control" 
+                               id="inspection_completed_date-{{ registration.id }}" name="inspection_completed_date"
+                               value="{% if registration_edit_form_data and registration_edit_form_id == registration.id %}{{ registration_edit_form_data.inspection_completed_date }}{% else %}{{ registration.inspection_completed_date|date:'Y-m-d'|default:'' }}{% endif %}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes-{{ registration.id }}" class="form-label">Notes</label>
+                        <textarea class="form-control" 
+                                  id="notes-{{ registration.id }}" name="notes" rows="3">{% if registration_edit_form_data and registration_edit_form_id == registration.id %}{{ registration_edit_form_data.notes }}{% else %}{{ registration.notes|default:'' }}{% endif %}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Registration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to auto-open modal if there are form errors for this specific registration -->
+{% if registration_edit_form_errors and registration_edit_form_id == registration.id %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var editModal = new bootstrap.Modal(document.getElementById('editRegistrationModal{{ registration.id }}'));
+    editModal.show();
+});
+</script>
+{% endif %}

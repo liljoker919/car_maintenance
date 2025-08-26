@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from datetime import date, timedelta
 from vehicles.models import Vehicle
 from .models import CarRegistration
@@ -141,3 +142,155 @@ class CarRegistrationModelTest(TestCase):
         # Registration should be deleted due to CASCADE
         with self.assertRaises(CarRegistration.DoesNotExist):
             CarRegistration.objects.get(id=registration_id)
+
+
+class CarRegistrationViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpass123'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            password='otherpass123'
+        )
+        self.vehicle = Vehicle.objects.create(
+            user=self.user,
+            make='Honda',
+            model='Civic',
+            year=2021,
+            current_mileage=15000
+        )
+        self.other_vehicle = Vehicle.objects.create(
+            user=self.other_user,
+            make='Ford',
+            model='Mustang',
+            year=2019,
+            current_mileage=30000
+        )
+
+    def test_registration_add_requires_login(self):
+        """Test that registration add view requires login"""
+        url = reverse('compliance:registration_add')
+        response = self.client.get(url)
+        # Check if it redirects to login page
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
+
+    def test_registration_add_success(self):
+        """Test successful registration creation"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_add')
+        data = {
+            'vehicle': self.vehicle.id,
+            'registration_number': 'ABC123',
+            'state': 'NC',
+            'registration_date': date.today(),
+            'expiration_date': date.today() + timedelta(days=365),
+        }
+        response = self.client.post(url, data)
+        
+        # Should redirect to vehicle detail page
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Registration should be created
+        registration = CarRegistration.objects.get(registration_number='ABC123')
+        self.assertEqual(registration.vehicle, self.vehicle)
+        self.assertEqual(registration.state, 'NC')
+
+    def test_registration_add_prevents_other_users_vehicle(self):
+        """Test that users can't add registrations to other users' vehicles"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_add')
+        data = {
+            'vehicle': self.other_vehicle.id,  # Try to add to other user's vehicle
+            'registration_number': 'HACK123',
+            'state': 'CA',
+            'registration_date': date.today(),
+            'expiration_date': date.today() + timedelta(days=365),
+        }
+        response = self.client.post(url, data)
+        
+        # Should not create the registration
+        self.assertFalse(CarRegistration.objects.filter(registration_number='HACK123').exists())
+
+    def test_registration_update_requires_ownership(self):
+        """Test that users can only edit registrations for their own vehicles"""
+        # Create registration for other user's vehicle
+        registration = CarRegistration.objects.create(
+            vehicle=self.other_vehicle,
+            registration_number='OTHER123',
+            state='TX',
+            registration_date=date.today(),
+            expiration_date=date.today() + timedelta(days=365)
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_edit', kwargs={'pk': registration.pk})
+        response = self.client.get(url)
+        
+        # Should return 404 (registration not in queryset for this user)
+        self.assertEqual(response.status_code, 404)
+
+    def test_registration_delete_requires_ownership(self):
+        """Test that users can only delete registrations for their own vehicles"""
+        # Create registration for other user's vehicle
+        registration = CarRegistration.objects.create(
+            vehicle=self.other_vehicle,
+            registration_number='DELETE123',
+            state='FL',
+            registration_date=date.today(),
+            expiration_date=date.today() + timedelta(days=365)
+        )
+        
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_delete', kwargs={'pk': registration.pk})
+        response = self.client.get(url)
+        
+        # Should return 404 (registration not in queryset for this user)
+        self.assertEqual(response.status_code, 404)
+    
+    def test_registration_add_modal_validation_error(self):
+        """Test that validation errors are handled properly in modal"""
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_add')
+        data = {
+            'vehicle': self.vehicle.id,
+            'registration_number': '',  # Missing required field
+            'state': 'CA',
+            'registration_date': date.today(),
+            'expiration_date': date.today() + timedelta(days=365),
+        }
+        response = self.client.post(url, data)
+        # Should redirect back to vehicle detail page
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Follow the redirect to check session data
+        response = self.client.get(reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        self.assertEqual(response.status_code, 200)
+        
+    def test_registration_edit_modal_validation_error(self):
+        """Test that validation errors are handled properly in edit modal"""
+        registration = CarRegistration.objects.create(
+            vehicle=self.vehicle,
+            registration_number='EDIT123',
+            state='CA',
+            registration_date=date.today(),
+            expiration_date=date.today() + timedelta(days=365)
+        )
+        self.client.login(username='testuser', password='testpass123')
+        url = reverse('compliance:registration_edit', kwargs={'pk': registration.pk})
+        data = {
+            'vehicle': self.vehicle.id,
+            'registration_number': '',  # Missing required field
+            'state': 'CA',
+            'registration_date': date.today(),
+            'expiration_date': date.today() + timedelta(days=365),
+        }
+        response = self.client.post(url, data)
+        # Should redirect back to vehicle detail page
+        self.assertRedirects(response, reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        
+        # Follow the redirect to check session data
+        response = self.client.get(reverse('vehicles:vehicle_detail', kwargs={'pk': self.vehicle.pk}))
+        self.assertEqual(response.status_code, 200)

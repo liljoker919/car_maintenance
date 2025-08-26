@@ -77,9 +77,59 @@
 <p>No insurance policies for this vehicle.</p>
 {% endif %}
 
+<hr>
+
+<h3>Vehicle Registrations</h3>
+
+<!-- Add Registration Button (always visible) -->
+<div class="mb-3">
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addRegistrationModal">
+        Add Registration
+    </button>
+</div>
+
+{% if car_registrations %}
+<ul class="list-group mb-4">
+    {% for registration in car_registrations %}
+    <li class="list-group-item d-flex justify-content-between align-items-start flex-column">
+        <div class="mb-2">
+            <strong>{{ registration.get_state_display }}</strong> - {{ registration.registration_number }}
+        </div>
+        <small class="text-muted">
+            Registration: {{ registration.registration_date }} to {{ registration.expiration_date }}<br>
+            {% if registration.inspection_due_date %}
+            Inspection Due: {{ registration.inspection_due_date }}<br>
+            {% endif %}
+            {% if registration.inspection_completed_date %}
+            Last Inspection: {{ registration.inspection_completed_date }}<br>
+            {% endif %}
+            {% if registration.notes %}
+            Notes: {{ registration.notes|truncatewords:10 }}
+            {% endif %}
+        </small>
+        <div class="mt-2">
+            <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" 
+                data-bs-target="#editRegistrationModal{{ registration.id }}">Edit</button>
+            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" 
+                data-bs-target="#deleteRegistrationModal{{ registration.id }}">Delete</button>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No registrations for this vehicle.</p>
+{% endif %}
+
 <!-- Modal included at bottom so it always loads -->
 {% include "insurance/includes/add_insurance_modal.html" %}
+{% include "compliance/includes/add_registration_modal.html" %}
 {% include "vehicles/includes/edit_vehicle_modal.html" with vehicle=vehicle %}
+
+<!-- Include edit and delete modals for each registration -->
+{% for registration in car_registrations %}
+{% include "compliance/includes/edit_registration_modal.html" with registration=registration %}
+{% include "compliance/includes/delete_registration_modal.html" with registration=registration %}
+{% endfor %}
 
 </div>
 {% endblock %}
