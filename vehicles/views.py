@@ -1,3 +1,4 @@
+import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import redirect
@@ -15,6 +16,8 @@ from insurance.models import InsurancePolicy
 from insurance.forms import InsurancePolicyForm
 from compliance.models import CarRegistration
 from compliance.forms import CarRegistrationForm
+
+logger = logging.getLogger(__name__)
 
 
 class VehicleListView(LoginRequiredMixin, ListView):
@@ -127,6 +130,7 @@ class VehicleCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        logger.info("User %s created new vehicle: %s", self.request.user.username, form.instance)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -145,6 +149,10 @@ class VehicleUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
+
+    def form_valid(self, form):
+        logger.info("User %s updated vehicle: %s", self.request.user.username, form.instance)
+        return super().form_valid(form)
 
     def get_success_url(self):
         # Check if request came from detail page or list page
@@ -169,6 +177,11 @@ class VehicleDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
 
     def get(self, request, *args, **kwargs):
         return redirect("vehicles:vehicle_list")  # disable GET access
+
+    def delete(self, request, *args, **kwargs):
+        vehicle = self.get_object()
+        logger.info("User %s deleted vehicle: %s", request.user.username, vehicle)
+        return super().delete(request, *args, **kwargs)
 
     def get_queryset(self):
         return Vehicle.objects.filter(user=self.request.user)
