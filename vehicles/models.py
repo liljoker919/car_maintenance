@@ -15,7 +15,7 @@ class Vehicle(models.Model):
     model = models.CharField(max_length=50)
     year = models.PositiveIntegerField()
     current_mileage = models.PositiveIntegerField()
-    vin = models.CharField(max_length=17, blank=True, null=True)
+    vin = models.CharField(max_length=17, blank=True, null=True, unique=True)
     condition = models.CharField(
         max_length=10, choices=CONDITION_CHOICES, default="good"
     )

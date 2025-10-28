@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.db import IntegrityError
 from .models import Vehicle, ServiceRecord
 from .forms import VehicleForm, ServiceRecordForm
 from datetime import date
@@ -573,3 +574,90 @@ class ServiceRecordViewTest(TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(str(messages[0]), 'Service record deleted successfully.')
         self.assertEqual(messages[0].tags, 'success')
+
+
+class VehicleUniqueVINTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            password='otherpass123'
+        )
+
+    def test_duplicate_vin_raises_integrity_error(self):
+        """Test that creating vehicles with duplicate VINs raises IntegrityError"""
+        # Create first vehicle with a VIN
+        vehicle1 = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin='JT2BF28K8X0012345'
+        )
+        
+        # Attempt to create second vehicle with the same VIN should raise error
+        with self.assertRaises(IntegrityError):
+            Vehicle.objects.create(
+                user=self.other_user,
+                make='Honda',
+                model='Civic',
+                year=2019,
+                current_mileage=30000,
+                vin='JT2BF28K8X0012345'  # Same VIN as vehicle1
+            )
+
+    def test_null_vins_are_allowed(self):
+        """Test that multiple vehicles can have null VINs"""
+        # Create first vehicle without a VIN
+        vehicle1 = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin=None
+        )
+        
+        # Create second vehicle without a VIN should succeed
+        vehicle2 = Vehicle.objects.create(
+            user=self.user,
+            make='Honda',
+            model='Civic',
+            year=2019,
+            current_mileage=30000,
+            vin=None
+        )
+        
+        # Both vehicles should exist
+        self.assertIsNotNone(vehicle1.pk)
+        self.assertIsNotNone(vehicle2.pk)
+
+    def test_unique_vins_are_allowed(self):
+        """Test that vehicles with different VINs can be created"""
+        # Create first vehicle with a VIN
+        vehicle1 = Vehicle.objects.create(
+            user=self.user,
+            make='Toyota',
+            model='Camry',
+            year=2020,
+            current_mileage=25000,
+            vin='JT2BF28K8X0012345'
+        )
+        
+        # Create second vehicle with a different VIN should succeed
+        vehicle2 = Vehicle.objects.create(
+            user=self.other_user,
+            make='Honda',
+            model='Civic',
+            year=2019,
+            current_mileage=30000,
+            vin='1HGBH41JXMN109186'
+        )
+        
+        # Both vehicles should exist
+        self.assertIsNotNone(vehicle1.pk)
+        self.assertIsNotNone(vehicle2.pk)
