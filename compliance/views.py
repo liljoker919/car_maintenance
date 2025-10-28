@@ -1,3 +1,4 @@
+import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
@@ -6,6 +7,8 @@ from django.contrib import messages
 from vehicles.models import Vehicle
 from .models import CarRegistration
 from .forms import CarRegistrationForm
+
+logger = logging.getLogger(__name__)
 
 
 class CarRegistrationCreateView(LoginRequiredMixin, CreateView):
@@ -19,6 +22,7 @@ class CarRegistrationCreateView(LoginRequiredMixin, CreateView):
         if vehicle.user != self.request.user:
             form.add_error('vehicle', 'You can only add registrations to your own vehicles.')
             return self.form_invalid(form)
+        logger.info("User %s created car registration for vehicle: %s", self.request.user.username, vehicle)
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -50,6 +54,10 @@ class CarRegistrationUpdateView(LoginRequiredMixin, UpdateView):
         # Only allow editing registrations for vehicles owned by the current user
         return CarRegistration.objects.filter(vehicle__user=self.request.user)
 
+    def form_valid(self, form):
+        logger.info("User %s updated car registration for vehicle: %s", self.request.user.username, form.instance.vehicle)
+        return super().form_valid(form)
+
     def form_invalid(self, form):
         # Store form errors in session and redirect back to vehicle detail page
         if self.object and self.object.vehicle:
@@ -73,6 +81,11 @@ class CarRegistrationDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         # Only allow deleting registrations for vehicles owned by the current user
         return CarRegistration.objects.filter(vehicle__user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        registration = self.get_object()
+        logger.info("User %s deleted car registration for vehicle: %s", request.user.username, registration.vehicle)
+        return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})

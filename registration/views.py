@@ -1,9 +1,12 @@
+import logging
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -33,6 +36,7 @@ def register(request):
             user.last_name = form.cleaned_data.get("last_name")
             user.save()
             login(request, user)
+            logger.info("New user registered: %s", user.username)
             messages.success(request, "Account created and you are now logged in.")
             return redirect("vehicle_list")
     else:

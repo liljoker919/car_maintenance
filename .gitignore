@@ -15,6 +15,10 @@ env/
 *.sqlite3
 db.sqlite3
 
+# Logs directory
+logs/
+!logs/.gitkeep
+
 # Media and static files
 /media
 /staticfiles
