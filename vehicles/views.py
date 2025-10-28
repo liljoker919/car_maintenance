@@ -11,9 +11,7 @@ from django.views.generic import (
 )
 from .models import Vehicle, ServiceRecord
 from .forms import VehicleForm, ServiceRecordForm
-from insurance.models import InsurancePolicy
 from insurance.forms import InsurancePolicyForm
-from compliance.models import CarRegistration
 from compliance.forms import CarRegistrationForm
 
 
@@ -100,7 +98,6 @@ class VehicleDetailView(LoginRequiredMixin, DetailView):
             # Recreate form with errors and data for the add modal
             import json
             from django.forms.utils import ErrorDict
-            from django.utils.safestring import mark_safe
 
             registration_form = CarRegistrationForm(
                 data=registration_form_data, initial={"vehicle": self.object}
