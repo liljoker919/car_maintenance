@@ -10,9 +10,16 @@ urlpatterns = [
     path("update/<int:pk>/", views.VehicleUpdateView.as_view(), name="vehicle_update"),
     path("<int:pk>/delete/", views.VehicleDeleteView.as_view(), name="vehicle_delete"),
     path("<int:pk>/", VehicleDetailView.as_view(), name="vehicle_detail"),
-    
     # Service record URLs
     path("service/add/", views.ServiceRecordCreateView.as_view(), name="service_add"),
-    path("service/update/<int:pk>/", views.ServiceRecordUpdateView.as_view(), name="service_update"),
-    path("service/<int:pk>/delete/", views.ServiceRecordDeleteView.as_view(), name="service_delete"),
+    path(
+        "service/update/<int:pk>/",
+        views.ServiceRecordUpdateView.as_view(),
+        name="service_update",
+    ),
+    path(
+        "service/<int:pk>/delete/",
+        views.ServiceRecordDeleteView.as_view(),
+        name="service_delete",
+    ),
 ]

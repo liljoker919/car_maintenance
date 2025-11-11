@@ -1,0 +1,28 @@
+# Core Django
+Django==5.2.8
+
+# Production WSGI Server
+gunicorn==23.0.0
+
+# PostgreSQL Database Adapter
+psycopg2-binary==2.9.10
+
+# Environment Variable Management
+python-decouple==3.8
+
+# Static File Serving
+whitenoise==6.8.2
+
+# Code Quality
+black==25.11.0
+flake8==7.3.0
+
+# Security
+django-ratelimit==4.1.0
+
+# Monitoring (Optional)
+# sentry-sdk==2.18.0
+
+# Background Tasks (Optional - for future enhancement)
+# celery==5.4.0
+# redis==5.2.0

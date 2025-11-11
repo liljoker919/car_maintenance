@@ -31,10 +31,10 @@ class ServiceRecordForm(forms.ModelForm):
             "date": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
-    
+
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user:
             # Limit vehicle choices to current user's vehicles
-            self.fields['vehicle'].queryset = Vehicle.objects.filter(user=user)
+            self.fields["vehicle"].queryset = Vehicle.objects.filter(user=user)

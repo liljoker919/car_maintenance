@@ -15,30 +15,38 @@ class CarRegistrationCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         # Ensure the vehicle belongs to the current user
-        vehicle = form.cleaned_data['vehicle']
+        vehicle = form.cleaned_data["vehicle"]
         if vehicle.user != self.request.user:
-            form.add_error('vehicle', 'You can only add registrations to your own vehicles.')
+            form.add_error(
+                "vehicle", "You can only add registrations to your own vehicles."
+            )
             return self.form_invalid(form)
         return super().form_valid(form)
 
     def form_invalid(self, form):
         # Store form errors in session and redirect back to vehicle detail page
-        vehicle_id = self.request.POST.get('vehicle')
+        vehicle_id = self.request.POST.get("vehicle")
         if vehicle_id:
             try:
-                vehicle = get_object_or_404(Vehicle, id=vehicle_id, user=self.request.user)
+                vehicle = get_object_or_404(
+                    Vehicle, id=vehicle_id, user=self.request.user
+                )
                 # Store form data and errors in session
-                self.request.session['registration_form_errors'] = form.errors.as_json()
-                self.request.session['registration_form_data'] = self.request.POST.dict()
-                messages.error(self.request, 'Please correct the errors below.')
-                return redirect('vehicles:vehicle_detail', pk=vehicle.pk)
+                self.request.session["registration_form_errors"] = form.errors.as_json()
+                self.request.session["registration_form_data"] = (
+                    self.request.POST.dict()
+                )
+                messages.error(self.request, "Please correct the errors below.")
+                return redirect("vehicles:vehicle_detail", pk=vehicle.pk)
             except (Vehicle.DoesNotExist, ValueError):
                 pass
         # Fallback to default behavior if we can't determine the vehicle
         return super().form_invalid(form)
 
     def get_success_url(self):
-        return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})
+        return reverse_lazy(
+            "vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk}
+        )
 
 
 class CarRegistrationUpdateView(LoginRequiredMixin, UpdateView):
@@ -54,16 +62,22 @@ class CarRegistrationUpdateView(LoginRequiredMixin, UpdateView):
         # Store form errors in session and redirect back to vehicle detail page
         if self.object and self.object.vehicle:
             # Store form data and errors in session
-            self.request.session['registration_edit_form_errors'] = form.errors.as_json()
-            self.request.session['registration_edit_form_data'] = self.request.POST.dict()
-            self.request.session['registration_edit_form_id'] = self.object.id
-            messages.error(self.request, 'Please correct the errors below.')
-            return redirect('vehicles:vehicle_detail', pk=self.object.vehicle.pk)
+            self.request.session["registration_edit_form_errors"] = (
+                form.errors.as_json()
+            )
+            self.request.session["registration_edit_form_data"] = (
+                self.request.POST.dict()
+            )
+            self.request.session["registration_edit_form_id"] = self.object.id
+            messages.error(self.request, "Please correct the errors below.")
+            return redirect("vehicles:vehicle_detail", pk=self.object.vehicle.pk)
         # Fallback to default behavior
         return super().form_invalid(form)
 
     def get_success_url(self):
-        return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})
+        return reverse_lazy(
+            "vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk}
+        )
 
 
 class CarRegistrationDeleteView(LoginRequiredMixin, DeleteView):
@@ -75,4 +89,6 @@ class CarRegistrationDeleteView(LoginRequiredMixin, DeleteView):
         return CarRegistration.objects.filter(vehicle__user=self.request.user)
 
     def get_success_url(self):
-        return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})
+        return reverse_lazy(
+            "vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk}
+        )
