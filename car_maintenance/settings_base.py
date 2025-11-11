@@ -1,3 +1,8 @@
+"""
+Base Django settings for car_maintenance project.
+Common settings shared between development and production environments.
+"""
+
 import os
 from pathlib import Path
 
@@ -6,29 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 print(os.path.join(BASE_DIR, "templates"))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# Load from environment variable, fallback to insecure key for development only
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-=subj2x^tdgdla*85l=eybc_!n==im%-6)3^z!v6)ziip*m1*%",
-)
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# Load from environment variable, default to False for safety
-DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
-
-# Load allowed hosts from environment variable
-ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,your-production-domain.com"
-).split(",")
-
-
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -73,27 +56,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "car_maintenance.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -103,22 +76,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
@@ -132,36 +98,14 @@ STORAGES = {
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Authentication settings
 LOGIN_REDIRECT_URL = "/vehicles/"
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/auth/login/"
 
-# Security Settings - Enable these in production
-SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL", "False").lower() == "true"
-SESSION_COOKIE_SECURE = (
-    os.getenv("DJANGO_SESSION_COOKIE_SECURE", "False").lower() == "true"
-)
-CSRF_COOKIE_SECURE = os.getenv("DJANGO_CSRF_COOKIE_SECURE", "False").lower() == "true"
-SECURE_HSTS_SECONDS = int(os.getenv("DJANGO_SECURE_HSTS_SECONDS", "0"))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
-SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = "DENY"
-
-# Session Configuration
-SESSION_COOKIE_AGE = 1209600  # 2 weeks
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = "Lax"
-
-# CSRF Configuration
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = "Lax"
-
-# Logging Configuration
+# Logging configuration
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -176,6 +120,12 @@ LOGGING = {
         },
     },
     "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+            "formatter": "verbose",
+        },
         "console": {
             "level": "INFO",
             "class": "logging.StreamHandler",
@@ -183,13 +133,18 @@ LOGGING = {
         },
     },
     "root": {
-        "handlers": ["console"],
+        "handlers": ["console", "file"],
         "level": "INFO",
     },
     "loggers": {
         "django": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console", "file"],
+            "level": "ERROR",
             "propagate": False,
         },
     },

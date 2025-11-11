@@ -10,7 +10,10 @@ urlpatterns = [
     path("register/", include("registration.urls")),
     path("vehicles/", include(("vehicles.urls", "vehicles"), namespace="vehicles")),
     path("insurance/", include(("insurance.urls", "insurance"), namespace="insurance")),
-    path("compliance/", include(("compliance.urls", "compliance"), namespace="compliance")),
+    path(
+        "compliance/",
+        include(("compliance.urls", "compliance"), namespace="compliance"),
+    ),
     path("", home_view, name="home"),
     path("my-garage/", VehicleListView.as_view(), name="vehicle_list"),  # ✅ Fixes E009
 ]

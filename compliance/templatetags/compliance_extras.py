@@ -17,7 +17,7 @@ def get_field_errors(errors_json, field_name):
         return []
 
 
-@register.simple_tag  
+@register.simple_tag
 def get_current_value(form_data, form_id, registration_id, field_name, default_value):
     """Get current value for a field, preferring form_data if available"""
     if form_data and form_id == registration_id:

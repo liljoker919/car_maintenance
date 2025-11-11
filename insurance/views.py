@@ -15,7 +15,9 @@ class InsuranceCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})
+        return reverse_lazy(
+            "vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk}
+        )
 
 
 class InsuranceUpdateView(LoginRequiredMixin, UpdateView):
@@ -24,7 +26,9 @@ class InsuranceUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "insurance_form.html"
 
     def get_success_url(self):
-        return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})
+        return reverse_lazy(
+            "vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk}
+        )
 
 
 class InsuranceDeleteView(LoginRequiredMixin, DeleteView):
@@ -32,4 +36,6 @@ class InsuranceDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "insurance_confirm_delete.html"
 
     def get_success_url(self):
-        return reverse_lazy("vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk})
+        return reverse_lazy(
+            "vehicles:vehicle_detail", kwargs={"pk": self.object.vehicle.pk}
+        )
